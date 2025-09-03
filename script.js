@@ -1,21 +1,23 @@
-var i = 0;
+let i = 0;
 
 let addbtn = document.querySelector("#addbtn");
 let taskContainer = document.getElementById("taskcontainer");
 
 // Adding event listener for 'Enter' key on input to add task
-document.querySelector('#taskinput').addEventListener('keydown', function(e){
-  if(e.code === 'Enter'){
+document.querySelector('#taskinput').addEventListener('keydown', function (e) {
+  if (e.code === 'Enter') {
     addTask();
   }
 });
 
-function addTask(){
-  i++;
-  localStorage.setItem('taskid', i); 
+addbtn.addEventListener("click", addTask); // In case you want to add via button as well
 
+function addTask() {
   let taskInp = document.querySelector('#taskinput').value.trim();
-  if(taskInp === "") return; // avoid empty tasks
+  if (taskInp === "") return; // Avoid empty tasks
+
+  i++;
+  localStorage.setItem('taskid', i);
 
   // Input creation
   let inp = document.createElement("input");
@@ -25,6 +27,7 @@ function addTask(){
   // Task Name creation
   let taskName = document.createElement("p");
   taskName.setAttribute("class", "taskname");
+  taskName.contentEditable = false; // Correct usage
   taskName.textContent = taskInp;
 
   // Remove button creation
@@ -32,11 +35,22 @@ function addTask(){
   rembtn.setAttribute("class", "rembtn");
 
   // Image Button creation inside remove button
-  let img = document.createElement("img");
-  img.setAttribute("class", "bin");
-  img.setAttribute("src", "bin.png");
-  img.setAttribute("alt", "remove");
-  rembtn.appendChild(img);
+  let remimg = document.createElement("img");
+  remimg.setAttribute("class", "bin");
+  remimg.setAttribute("src", "bin.png");
+  remimg.setAttribute("alt", "remove");
+  rembtn.appendChild(remimg);
+
+  // Edit button creation
+  let editbtn = document.createElement("button");
+  editbtn.setAttribute("class", "editbtn");
+
+  // Image Button creation inside edit button
+  let editimg = document.createElement("img");
+  editimg.setAttribute("class", "edit");
+  editimg.setAttribute("src", "edit.png");
+  editimg.setAttribute("alt", "edit");
+  editbtn.appendChild(editimg);
 
   // Task container div
   let task = document.createElement("div");
@@ -45,6 +59,7 @@ function addTask(){
 
   task.appendChild(inp);
   task.appendChild(taskName);
+  task.appendChild(editbtn);
   task.appendChild(rembtn);
 
   taskContainer.appendChild(task);
@@ -52,8 +67,39 @@ function addTask(){
   // Clear input box after adding
   document.querySelector('#taskinput').value = "";
 
-  // Add click listener to remove button to delete this task
-  rembtn.addEventListener('click', function(){
-    task.remove();
+  // Remove button event
+  rembtn.addEventListener("click", function () {
+    taskContainer.removeChild(task);
   });
+
+  // Edit button event
+  editbtn.addEventListener("click", function (e) {
+    // Toggle edit mode only for this taskName
+    if (!taskName.isContentEditable) {
+      taskName.contentEditable = true;
+      taskName.style.borderColor = "black";
+      taskName.focus();
+    } else {
+      taskName.contentEditable = false;
+      taskName.style.borderColor = "#77dd77";
+    }
+    e.stopPropagation(); // Prevent triggering document click
+  });
+
+  // Disable edit when clicking outside the editbtn/taskName
+  document.addEventListener("mousedown", function listener(e) {
+    if (taskName.isContentEditable && !editbtn.contains(e.target) && e.target !== editbtn && e.target !== taskName) {
+      taskName.contentEditable = false;
+      taskName.style.borderColor = "#77dd77";
+    }
+  });
+
+  inp.addEventListener('change', function() {
+  if (inp.checked) {
+    taskName.innerHTML = `<strike>${taskInp}</strike>`;
+  } else {
+    taskName.innerHTML = taskInp;
+  }
+});
+
 }
